@@ -11,6 +11,8 @@ export interface Conversation {
   _id: string;
   title: string;
   documentIds?: string[];
+  pinned?: boolean;
+  archived?: boolean;
   updatedAt: string;
   createdAt: string;
 }

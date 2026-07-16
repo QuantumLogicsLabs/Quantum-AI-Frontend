@@ -1,5 +1,6 @@
 const USER_ID_KEY = 'quantum-ai-user-id';
 const TOKEN_KEY = 'quantum-ai-token';
+const QUANTUM_CHAT_TOKEN_KEY = 'qc_token';
 
 export const API_BASE = import.meta.env.VITE_API_BASE ?? '/api/v1';
 
@@ -17,7 +18,7 @@ export function setUserId(id: string) {
 }
 
 export function getToken(): string | null {
-  return localStorage.getItem(TOKEN_KEY);
+  return localStorage.getItem(TOKEN_KEY) ?? localStorage.getItem(QUANTUM_CHAT_TOKEN_KEY);
 }
 
 export function setToken(token: string) {
@@ -98,6 +99,7 @@ export interface StreamChatOptions {
   message: string;
   conversationId?: string;
   documentIds?: string[];
+  model?: string;
   onStart?: (conversationId: string) => void;
   onChunk: (text: string) => void;
   onDone?: (payload: { conversationId: string; content: string }) => void;
@@ -113,6 +115,7 @@ export async function streamChat(options: StreamChatOptions) {
       message: options.message,
       conversationId: options.conversationId,
       documentIds: options.documentIds,
+      model: options.model,
       stream: true,
     }),
     signal: options.signal,
@@ -169,6 +172,11 @@ export async function streamChat(options: StreamChatOptions) {
   }
 }
 
+export async function listModels() {
+  const result = await apiGet<{ success: boolean; data: { models: string[] } }>('/ai/models');
+  return result.data?.models ?? [];
+}
+
 export async function downloadPresentation(
   id: string,
   body?: { subject?: string; gradeLevel?: string }
@@ -186,5 +194,17 @@ export async function downloadPresentation(
   const disposition = res.headers.get('Content-Disposition');
   const match = disposition?.match(/filename="(.+)"/);
   const filename = match?.[1] ?? 'presentation.pptx';
+  return { blob, filename };
+}
+
+export async function downloadDocumentConversion(id: string, format: 'txt' | 'markdown') {
+  const res = await fetch(`${API_BASE}/documents/${id}/download/${format}`, {
+    headers: authHeaders(),
+  });
+  if (!res.ok) throw new Error('Document conversion failed');
+  const blob = await res.blob();
+  const disposition = res.headers.get('Content-Disposition');
+  const filename =
+    disposition?.match(/filename="(.+)"/)?.[1] ?? `document.${format === 'markdown' ? 'md' : 'txt'}`;
   return { blob, filename };
 }
