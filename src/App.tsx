@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { MessageBubble } from './components/MessageBubble';
 import { ChatInput } from './components/ChatInput';
+import { SearchResultsCard } from './components/SearchResultsCard';
 import {
   deleteConversation,
   deleteLastMessages,
@@ -58,6 +59,7 @@ export default function App() {
   } | null>(null);
   const [models, setModels] = useState<string[]>([]);
   const [selectedModel, setSelectedModel] = useState('llama-3.3-70b-versatile');
+  const [webSearch, setWebSearch] = useState(false);
   const threadRef = useRef<HTMLDivElement>(null);
   const shouldAutoScrollRef = useRef(true);
   const abortRef = useRef<AbortController | null>(null);
@@ -185,10 +187,16 @@ export default function App() {
         conversationId: convId,
         documentIds: attachedDocs.map((d) => d._id),
         model: selectedModel || undefined,
+        webSearch,
         signal: abortRef.current.signal,
-        onStart: (id) => {
+        onStart: (id, searchResults) => {
           convId = id;
           if (!activeConversationId) setActiveConversationId(id);
+          if (searchResults) {
+            setMessages((prev) =>
+              prev.map((m) => (m.id === assistantId ? { ...m, searchResults } : m))
+            );
+          }
         },
         onChunk: (chunk) => {
           setMessages((prev) =>
@@ -201,14 +209,21 @@ export default function App() {
       await loadConversations(search, chatFilter);
       if (convId) {
         const { messages: history } = await fetchConversation(convId);
-        setMessages(history);
+        setMessages((prev) => {
+          const withSearch = prev.find((m) => m.id === assistantId)?.searchResults;
+          if (!withSearch) return history;
+          return history.map((m, index) =>
+            index === history.length - 1 && m.role === 'assistant'
+              ? { ...m, searchResults: withSearch }
+              : m
+          );
+        });
       }
     } catch (e) {
       if ((e as Error).name !== 'AbortError') {
         setError(e instanceof Error ? e.message : 'Failed to send message');
         setMessages((prev) => prev.filter((m) => m.id !== assistantId));
       } else {
-        // Keep partial assistant content after stop
         setMessages((prev) => prev.filter((m) => !(m.id === assistantId && !m.content)));
       }
     } finally {
@@ -255,7 +270,7 @@ export default function App() {
     }
   };
 
-  const handleUpload = async (files: FileList) => {
+  const handleUpload = async (files: FileList | File[]) => {
     setError(null);
     try {
       const res = await uploadDocuments(files);
@@ -623,6 +638,7 @@ export default function App() {
                   {models.length ? models.map((model) => <option key={model}>{model}</option>) : <option>default</option>}
                 </select>
                 {attachedDocs.length > 0 && ` · ${attachedDocs.length} document(s) attached`}
+                {webSearch && ' · live search'}
                 {loading && ' · generating…'}
               </p>
             </div>
@@ -650,28 +666,32 @@ export default function App() {
             </div>
           ) : (
             messages.map((m, idx) => (
-              <MessageBubble
-                key={m.id}
-                message={m}
-                streaming={loading && idx === lastAssistantIndex && m.role === 'assistant'}
-                isLastAssistant={idx === lastAssistantIndex && m.role === 'assistant'}
-                isLastUser={idx === lastUserIndex && m.role === 'user'}
-                onRegenerate={
-                  idx === lastAssistantIndex && m.role === 'assistant' && !loading
-                    ? handleRegenerate
-                    : undefined
-                }
-                onRetry={
-                  idx === lastAssistantIndex && m.role === 'assistant' && !loading
-                    ? handleRetry
-                    : undefined
-                }
-                onEdit={
-                  idx === lastUserIndex && m.role === 'user' && !loading
-                    ? () => handleEditPrompt(m)
-                    : undefined
-                }
-              />
+              <div key={m.id} className="message-with-search">
+                {m.role === 'assistant' && m.searchResults && (
+                  <SearchResultsCard payload={m.searchResults} />
+                )}
+                <MessageBubble
+                  message={m}
+                  streaming={loading && idx === lastAssistantIndex && m.role === 'assistant'}
+                  isLastAssistant={idx === lastAssistantIndex && m.role === 'assistant'}
+                  isLastUser={idx === lastUserIndex && m.role === 'user'}
+                  onRegenerate={
+                    idx === lastAssistantIndex && m.role === 'assistant' && !loading
+                      ? handleRegenerate
+                      : undefined
+                  }
+                  onRetry={
+                    idx === lastAssistantIndex && m.role === 'assistant' && !loading
+                      ? handleRetry
+                      : undefined
+                  }
+                  onEdit={
+                    idx === lastUserIndex && m.role === 'user' && !loading
+                      ? () => handleEditPrompt(m)
+                      : undefined
+                  }
+                />
+              </div>
             ))
           )}
         </div>
@@ -698,6 +718,8 @@ export default function App() {
           attachedDocs={attachedDocs}
           onAttach={handleUpload}
           onRemoveDoc={(id) => setAttachedDocs((prev) => prev.filter((d) => d._id !== id))}
+          webSearch={webSearch}
+          onWebSearchChange={setWebSearch}
         />
       </main>
     </div>

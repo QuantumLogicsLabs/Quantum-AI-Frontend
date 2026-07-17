@@ -804,12 +804,43 @@ button {
   background: transparent !important;
 }
 
+.code-block--terminal {
+  border-color: #134e4a;
+  background: #041411;
+}
+
+.code-block--terminal .code-block-header {
+  background: #0a2421;
+  color: #5eead4;
+}
+
+.code-block--terminal pre {
+  position: relative;
+  padding-left: 1.6rem;
+  color: #d1fae5;
+}
+
+.code-block--terminal .terminal-prompt {
+  position: absolute;
+  left: 0.75rem;
+  top: 0.75rem;
+  color: #2dd4bf;
+  font-weight: 700;
+  pointer-events: none;
+}
+
 .inline-code {
   background: #e2e8f0;
   border-radius: 4px;
   padding: 0.1rem 0.35rem;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 0.85em;
+}
+
+.icon-btn.search-active {
+  background: #ccfbf1;
+  border-color: #5eead4;
+  color: #0f766e;
 }
 
 .icon-btn.stop {
@@ -823,6 +854,172 @@ button {
   border-color: #fca5a5;
   color: #b91c1c;
   animation: pulse 1.2s ease infinite;
+}
+
+.message-with-search {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.search-results-card {
+  margin: 0 0 0 3.25rem;
+  max-width: min(720px, 100%);
+  border: 1px solid #134e4a;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #082f2b 0%, #0b1c1a 100%);
+  color: #ecfdf5;
+  padding: 0.75rem 0.9rem;
+}
+
+.search-results-card header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.75rem;
+  align-items: baseline;
+  margin-bottom: 0.65rem;
+}
+
+.search-results-card header strong {
+  font-size: 0.85rem;
+  color: #5eead4;
+}
+
+.search-results-card header span {
+  font-size: 0.75rem;
+  color: #99f6e4;
+  opacity: 0.85;
+}
+
+.search-results-card ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.search-results-card li {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.search-results-card a {
+  color: #f0fdfa;
+  font-weight: 600;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.search-results-card a:hover {
+  text-decoration: underline;
+}
+
+.search-results-card p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #a7f3d0;
+  line-height: 1.4;
+}
+
+.search-results-card small {
+  color: #6ee7b7;
+  font-size: 0.72rem;
+}
+
+.search-source-badge {
+  display: inline-flex;
+  width: fit-content;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.search-source-badge.source-google {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.search-source-badge.source-youtube {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.search-source-badge.source-reddit {
+  background: #ffedd5;
+  color: #c2410c;
+}
+
+.camera-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.camera-panel {
+  width: min(480px, 100%);
+  background: #0f2740;
+  border: 1px solid #1e3a4f;
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  color: #e8f4f8;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+}
+
+.camera-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.camera-close {
+  border: none;
+  background: transparent;
+  color: #94a3b8;
+  font-size: 1.25rem;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.camera-video {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 12px;
+  background: #000;
+}
+
+.camera-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.camera-error {
+  margin: 0;
+  padding: 24px;
+  text-align: center;
+  color: #fca5a5;
+}
+
+.camera-hint {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #94a3b8;
+  text-align: center;
 }
 
 @keyframes pulse {

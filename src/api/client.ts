@@ -100,7 +100,9 @@ export interface StreamChatOptions {
   conversationId?: string;
   documentIds?: string[];
   model?: string;
-  onStart?: (conversationId: string) => void;
+  webSearch?: boolean;
+  searchSources?: Array<'google' | 'youtube' | 'reddit'>;
+  onStart?: (conversationId: string, searchResults?: import('../types').SearchResultsPayload) => void;
   onChunk: (text: string) => void;
   onDone?: (payload: { conversationId: string; content: string }) => void;
   onError?: (message: string) => void;
@@ -116,6 +118,8 @@ export async function streamChat(options: StreamChatOptions) {
       conversationId: options.conversationId,
       documentIds: options.documentIds,
       model: options.model,
+      webSearch: options.webSearch ?? false,
+      searchSources: options.searchSources,
       stream: true,
     }),
     signal: options.signal,
@@ -154,7 +158,8 @@ export async function streamChat(options: StreamChatOptions) {
       try {
         const payload = JSON.parse(data) as Record<string, unknown>;
         if (event === 'start' && typeof payload.conversationId === 'string') {
-          options.onStart?.(payload.conversationId);
+          const searchResults = payload.searchResults as import('../types').SearchResultsPayload | undefined;
+          options.onStart?.(payload.conversationId, searchResults);
         } else if (event === 'chunk' && typeof payload.content === 'string') {
           options.onChunk(payload.content);
         } else if (event === 'done') {
@@ -170,6 +175,17 @@ export async function streamChat(options: StreamChatOptions) {
       }
     }
   }
+}
+
+export async function searchWeb(
+  query: string,
+  sources?: Array<'google' | 'youtube' | 'reddit'>
+) {
+  const result = await apiPost<{
+    success: boolean;
+    data: import('../types').SearchResultsPayload;
+  }>('/search', { query, sources });
+  return result.data;
 }
 
 export async function listModels() {

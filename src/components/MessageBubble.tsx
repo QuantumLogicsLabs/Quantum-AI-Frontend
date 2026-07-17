@@ -14,6 +14,19 @@ interface Props {
   onEdit?: () => void;
 }
 
+const TERMINAL_LANGS = new Set([
+  'bash',
+  'sh',
+  'shell',
+  'zsh',
+  'powershell',
+  'ps1',
+  'console',
+  'terminal',
+  'cmd',
+  'dos',
+]);
+
 function CodeBlock({
   className,
   children,
@@ -22,7 +35,8 @@ function CodeBlock({
   children?: ReactNode;
 }) {
   const [copied, setCopied] = useState(false);
-  const lang = /language-(\w+)/.exec(className || '')?.[1] ?? '';
+  const lang = /language-(\w+)/.exec(className || '')?.[1]?.toLowerCase() ?? '';
+  const isTerminal = TERMINAL_LANGS.has(lang);
   const text = String(children ?? '').replace(/\n$/, '');
 
   const copy = async () => {
@@ -36,14 +50,15 @@ function CodeBlock({
   };
 
   return (
-    <div className="code-block">
+    <div className={`code-block${isTerminal ? ' code-block--terminal' : ''}`}>
       <div className="code-block-header">
-        <span>{lang || 'code'}</span>
+        <span>{isTerminal ? 'Terminal' : lang || 'code'}</span>
         <button type="button" onClick={copy}>
           {copied ? 'Copied' : 'Copy'}
         </button>
       </div>
       <pre className={className}>
+        {isTerminal ? <span className="terminal-prompt" aria-hidden="true">$</span> : null}
         <code className={className}>{children}</code>
       </pre>
     </div>

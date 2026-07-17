@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { DocumentItem } from '../types';
+import { CameraCapture } from './CameraCapture';
 
 interface Props {
   value: string;
@@ -9,8 +10,10 @@ interface Props {
   disabled?: boolean;
   loading?: boolean;
   attachedDocs: DocumentItem[];
-  onAttach: (files: FileList) => void;
+  onAttach: (files: FileList | File[]) => void;
   onRemoveDoc: (id: string) => void;
+  webSearch?: boolean;
+  onWebSearchChange?: (enabled: boolean) => void;
 }
 
 type SpeechRecognitionLike = {
@@ -42,10 +45,13 @@ export function ChatInput({
   attachedDocs,
   onAttach,
   onRemoveDoc,
+  webSearch = false,
+  onWebSearchChange,
 }: Props) {
   const fileRef = useRef<HTMLInputElement>(null);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const [listening, setListening] = useState(false);
+  const [cameraOpen, setCameraOpen] = useState(false);
   const [voiceSupported] = useState(() => Boolean(getSpeechRecognition()));
 
   useEffect(() => {
@@ -86,7 +92,6 @@ export function ChatInput({
       if (finalText) {
         onChange(`${value}${value && !value.endsWith(' ') ? ' ' : ''}${finalText}`.trimStart());
       } else if (interim) {
-        // show interim in placeholder feel by appending lightly — keep base value
         const base = value.replace(/\s*\[listening…\]$/, '');
         onChange(`${base}${base && !base.endsWith(' ') ? ' ' : ''}${interim}`);
       }
@@ -116,7 +121,13 @@ export function ChatInput({
       <div className="input-box">
         <textarea
           rows={1}
-          placeholder={listening ? 'Listening… speak now' : 'Ask Quantum AI anything…'}
+          placeholder={
+            listening
+              ? 'Listening… speak now'
+              : webSearch
+                ? 'Ask with live Google, YouTube & Reddit search…'
+                : 'Ask Quantum AI anything…'
+          }
           value={value}
           onChange={(e) => onChange(e.target.value)}
           onKeyDown={handleKeyDown}
@@ -132,6 +143,29 @@ export function ChatInput({
           >
             📎
           </button>
+          <button
+            type="button"
+            className="icon-btn"
+            onClick={() => setCameraOpen(true)}
+            title="Take a photo"
+            disabled={loading}
+            aria-label="Take a photo"
+          >
+            📷
+          </button>
+          {onWebSearchChange && (
+            <button
+              type="button"
+              className={`icon-btn ${webSearch ? 'search-active' : ''}`}
+              onClick={() => onWebSearchChange(!webSearch)}
+              title={webSearch ? 'Live search on' : 'Search Google, YouTube & Reddit'}
+              disabled={loading}
+              aria-pressed={webSearch}
+              aria-label="Toggle live web search"
+            >
+              🔍
+            </button>
+          )}
           {voiceSupported && (
             <button
               type="button"
@@ -144,12 +178,7 @@ export function ChatInput({
             </button>
           )}
           {loading ? (
-            <button
-              type="button"
-              className="icon-btn stop"
-              onClick={onStop}
-              title="Stop generation"
-            >
+            <button type="button" className="icon-btn stop" onClick={onStop} title="Stop generation">
               ■
             </button>
           ) : (
@@ -176,6 +205,12 @@ export function ChatInput({
           if (e.target.files?.length) onAttach(e.target.files);
           e.target.value = '';
         }}
+      />
+
+      <CameraCapture
+        open={cameraOpen}
+        onClose={() => setCameraOpen(false)}
+        onCapture={(file) => onAttach([file])}
       />
     </div>
   );
