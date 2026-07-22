@@ -4,6 +4,7 @@ import { ChatInput } from './components/ChatInput';
 import { SearchResultsCard } from './components/SearchResultsCard';
 import {
   deleteConversation,
+  deleteDocument,
   deleteLastMessages,
   fetchConversation,
   fetchConversationsPage,
@@ -186,7 +187,12 @@ export default function App() {
     abortRef.current = new AbortController();
 
     let finalContent = '';
-    const isPresentationModification = lastPresentationMsg && message.toLowerCase().includes('slide');
+    const isPresentationModification =
+      Boolean(lastPresentationMsg) && message.toLowerCase().includes('slide');
+    const finalMessage =
+      isPresentationModification && lastPresentationMsg
+        ? `Regarding this presentation draft:\n\n${lastPresentationMsg.content}\n\nUser request: ${message}`
+        : message;
 
     try {
       let convId = conversationId ?? undefined;
@@ -301,6 +307,32 @@ export default function App() {
     await loadConversations(search, chatFilter);
   };
 
+  const handleDeleteDocument = async (id: string) => {
+    try {
+      await deleteDocument(id);
+      setDocuments((prev) => prev.filter((d) => d._id !== id));
+      setAttachedDocs((prev) => prev.filter((d) => d._id !== id));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to delete document');
+    }
+  };
+
+  const handleDownloadPresentation = (message: ChatMessage) => {
+    if (!message.downloadable) return;
+    const blob = new Blob([message.downloadable.text], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = message.downloadable.filename;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleRequestPresentationChanges = (message: ChatMessage) => {
+    setLastPresentationMsg(message);
+    setInput('Please update slide ');
+  };
+
   const handleRename = async (id: string) => {
     const title = renameValue.trim();
     if (!title) {
@@ -382,15 +414,16 @@ export default function App() {
         link.click();
         URL.revokeObjectURL(url);
       } else {
-        // Generate presentation and show in chat
-        const res = await fetchPresentation(doc._id);
+        // Generate presentation text and show in chat with download actions
+        const { blob, filename } = await downloadPresentation(doc._id);
+        const text = await blob.text();
         const newMessage: ChatMessage = {
           id: `a-${Date.now()}`,
           role: 'assistant',
-          content: res.data!.text,
+          content: text,
           downloadable: {
-            text: res.data!.text,
-            filename: res.data!.filename,
+            text,
+            filename,
           },
         };
         setMessages((prev) => [...prev, newMessage]);
@@ -716,6 +749,8 @@ export default function App() {
                       ? () => handleEditPrompt(m)
                       : undefined
                   }
+                  onDownload={m.downloadable ? handleDownloadPresentation : undefined}
+                  onRequestChanges={m.downloadable ? handleRequestPresentationChanges : undefined}
                 />
               </div>
             ))

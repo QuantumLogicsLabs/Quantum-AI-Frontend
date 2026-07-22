@@ -44,3 +44,12 @@ frontend/
 │   └── main.tsx
 └── vite.config.ts    # proxy /api → localhost:5001
 ```
+
+## Community
+
+- [Contributing](docs/CONTRIBUTING.md)
+- [Code of Conduct](docs/CODE_OF_CONDUCT.md)
+- [Security Policy](docs/SECURITY.md)
+- [Support](docs/SUPPORT.md)
+- [License (MIT)](LICENSE)
+- [Docs index](docs/README.md)

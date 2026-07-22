@@ -97,6 +97,10 @@ export async function fetchDocuments() {
   return res.data?.documents ?? [];
 }
 
+export async function deleteDocument(id: string) {
+  await apiDelete(`/documents/${id}`);
+}
+
 export async function summarizeDocument(id: string) {
   const res = await apiPost<ApiResponse<{ summary: string; model: string }>>(
     `/documents/${id}/summarize`
