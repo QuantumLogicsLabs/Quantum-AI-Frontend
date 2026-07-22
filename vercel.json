@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/v1/:path*",
-      "destination": "https://quantum-ai-backend.vercel.app/api/v1/:path*"
+      "destination": "https://quantum-ai-backend-seno-quantum-coders-projects.vercel.app/api/v1/:path*"
     },
     {
       "source": "/qc-api/:path*",
