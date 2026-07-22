@@ -2,7 +2,7 @@ import { FormEvent, ReactNode, useState } from 'react';
 import { getToken, setToken, setUserId } from '../api/client';
 
 /**
- * Production must stay same-origin (/qc-api → Vercel function → Quantum Chat).
+ * Production must stay same-origin (/qc-api → Vercel api/qc.js → Quantum Chat).
  * Absolute Chat URLs fail CORS; plain rewrites forward Origin and caused login 500s.
  */
 function resolveQuantumChatApi(): string {
@@ -35,10 +35,16 @@ export function LoginGate({ children }: { children: ReactNode }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
-      const body = await response.json();
-      if (!response.ok) throw new Error(body.error ?? 'Sign in failed');
-      setToken(body.data.token);
-      setUserId(String(body.data.user.id));
+      const body = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(
+          (body as { error?: string }).error ?? `Sign in failed (${response.status})`
+        );
+      }
+      const data = (body as { data?: { token?: string; user?: { id?: string | number } } }).data;
+      if (!data?.token || data.user?.id == null) throw new Error('Sign in failed');
+      setToken(data.token);
+      setUserId(String(data.user.id));
       setAuthenticated(true);
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Sign in failed');

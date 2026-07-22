@@ -5,11 +5,11 @@
       "destination": "https://quantum-ai-backend.vercel.app/api/v1/:path*"
     },
     {
-      "source": "/qc-api/:path*",
-      "destination": "/api/qc/:path*"
+      "source": "/qc-api/(.*)",
+      "destination": "/api/qc?p=$1"
     },
     {
-      "source": "/((?!assets/).*)",
+      "source": "/((?!assets/|api/|qc-api/).*)",
       "destination": "/index.html"
     }
   ],
