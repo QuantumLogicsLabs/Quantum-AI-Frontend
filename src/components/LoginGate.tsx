@@ -2,8 +2,8 @@ import { FormEvent, ReactNode, useState } from 'react';
 import { getToken, setToken, setUserId } from '../api/client';
 
 /**
- * Production must stay same-origin (/qc-api → vercel rewrite → Quantum Chat).
- * Absolute Chat backend URLs cause CORS failures from ai.quantumlogicslimited.com.
+ * Production must stay same-origin (/qc-api → Vercel function → Quantum Chat).
+ * Absolute Chat URLs fail CORS; plain rewrites forward Origin and caused login 500s.
  */
 function resolveQuantumChatApi(): string {
   const fromEnv = String(import.meta.env.VITE_QUANTUMCHAT_API_URL ?? '').trim();

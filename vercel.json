@@ -6,7 +6,7 @@
     },
     {
       "source": "/qc-api/:path*",
-      "destination": "https://quantum-chat-backend.vercel.app/api/:path*"
+      "destination": "/api/qc/:path*"
     },
     {
       "source": "/((?!assets/).*)",
