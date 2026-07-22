@@ -1,7 +1,9 @@
 import { useState, type ReactNode } from 'react';
 import ReactMarkdown from 'react-markdown';
 import rehypeHighlight from 'rehype-highlight';
+import rehypeSanitize from 'rehype-sanitize';
 import type { ChatMessage } from '../types';
+import { safeMarkdownUrl } from '../utils/safeUrl';
 
 interface Props {
   message: ChatMessage;
@@ -104,7 +106,8 @@ export function MessageBubble({
             <div style={{ whiteSpace: 'pre-wrap' }}>{message.content}</div>
           ) : message.content ? (
             <ReactMarkdown
-              rehypePlugins={[rehypeHighlight]}
+              urlTransform={safeMarkdownUrl}
+              rehypePlugins={[rehypeSanitize, rehypeHighlight]}
               components={{
                 pre: ({ children }) => <>{children}</>,
                 code: ({ className, children, ...props }) => {
@@ -117,6 +120,17 @@ export function MessageBubble({
                     );
                   }
                   return <CodeBlock className={className}>{children}</CodeBlock>;
+                },
+                a: ({ href, children, ...props }) => {
+                  const safe = safeMarkdownUrl(href || '');
+                  if (!safe) {
+                    return <span>{children}</span>;
+                  }
+                  return (
+                    <a href={safe} target="_blank" rel="noopener noreferrer" {...props}>
+                      {children}
+                    </a>
+                  );
                 },
               }}
             >

@@ -31,6 +31,12 @@ Include reproduction steps, affected UI flows, and impact.
 - Issues solely in Quantum-AI-Backend (report there)
 - Model quality / hallucination without a security impact
 
+## XSS controls
+
+- Content-Security-Policy on the SPA (`script-src 'self'`)
+- Assistant markdown sanitized with `rehype-sanitize` + http(s)-only link URLs
+- Search result links only render when the URL is `http:` / `https:`
+
 ## Safe harbor
 
 Good-faith research that follows this policy and avoids abusing real user data
