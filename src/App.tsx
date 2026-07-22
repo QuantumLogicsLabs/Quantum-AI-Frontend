@@ -165,6 +165,7 @@ export default function App() {
     setInput('');
     setAttachedDocs([]);
     setError(null);
+    setSidebarOpen(false);
   };
 
   const handleStop = () => {
@@ -452,6 +453,14 @@ export default function App() {
 
   return (
     <div className="app-shell">
+      {sidebarOpen && (
+        <button
+          type="button"
+          className="sidebar-backdrop"
+          aria-label="Close sidebar"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
       <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
           <div className="brand">
