@@ -1,5 +1,3 @@
-import type { ApiResponse } from '../types';
-
 const USER_ID_KEY = 'quantum-ai-user-id';
 const TOKEN_KEY = 'quantum-ai-token';
 const QUANTUM_CHAT_TOKEN_KEY = 'qc_token';

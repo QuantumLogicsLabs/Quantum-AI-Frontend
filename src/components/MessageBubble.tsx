@@ -12,6 +12,8 @@ interface Props {
   onRegenerate?: () => void;
   onRetry?: () => void;
   onEdit?: () => void;
+  onDownload?: (message: ChatMessage) => void;
+  onRequestChanges?: (message: ChatMessage) => void;
 }
 
 const TERMINAL_LANGS = new Set([
@@ -74,6 +76,8 @@ export function MessageBubble({
   onRegenerate,
   onRetry,
   onEdit,
+  onDownload,
+  onRequestChanges,
 }: Props) {
   const isUser = message.role === 'user';
   const [copied, setCopied] = useState(false);
@@ -152,6 +156,7 @@ export function MessageBubble({
         {message.downloadable && (
           <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
             <button
+              type="button"
               onClick={() => onDownload?.(message)}
               style={{
                 padding: '6px 12px',
@@ -166,7 +171,8 @@ export function MessageBubble({
               ⬇ Download
             </button>
             <button
-              onClick={() => onEdit?.(message)}
+              type="button"
+              onClick={() => onRequestChanges?.(message)}
               style={{
                 padding: '6px 12px',
                 background: '#7c3aed',
