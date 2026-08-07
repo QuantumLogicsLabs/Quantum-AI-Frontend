@@ -3,6 +3,7 @@ import { MessageBubble } from './components/MessageBubble';
 import { ChatInput } from './components/ChatInput';
 import { SearchResultsCard } from './components/SearchResultsCard';
 import { ThemeMenu } from './components/ThemeMenu';
+import { ConversationActionsMenu } from './components/ConversationActionsMenu';
 import {
   deleteConversation,
   deleteDocument,
@@ -20,6 +21,7 @@ import {
 } from './api/client';
 import { useAuthSession } from './components/LoginGate';
 import type { ChatMessage, Conversation, DocumentItem } from './types';
+import { filterChatModels, pickDefaultChatModel } from './utils/chatModels';
 
 
 
@@ -114,10 +116,13 @@ export default function App() {
   useEffect(() => {
     listModels()
       .then((available) => {
-        setModels(
-          available.includes('llama-3.3-70b-versatile')
-            ? available
-            : ['llama-3.3-70b-versatile', ...available]
+        const chatModels = filterChatModels(available);
+        const next = chatModels.length
+          ? chatModels
+          : [pickDefaultChatModel([])];
+        setModels(next);
+        setSelectedModel((current) =>
+          next.includes(current) ? current : pickDefaultChatModel(next),
         );
       })
       .catch(() => undefined);
@@ -512,74 +517,54 @@ export default function App() {
               <>
                 {conversations.map((conv) => (
                   <div
-                  key={conv._id}
-                  className={`list-item ${activeConversationId === conv._id ? 'active' : ''} ${conv.pinned ? 'pinned' : ''}`}
-                  onClick={() => {
-                    openConversation(conv._id);
-                    setSidebarOpen(false);
-                  }}
-                  onKeyDown={(e) => e.key === 'Enter' && openConversation(conv._id)}
-                  role="button"
-                  tabIndex={0}
-                >
-                  {renamingId === conv._id ? (
-                    <form
-                      onSubmit={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        handleRename(conv._id);
-                      }}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <input
-                        className="rename-input"
-                        value={renameValue}
-                        autoFocus
-                        onChange={(e) => setRenameValue(e.target.value)}
-                        onBlur={() => handleRename(conv._id)}
-                      />
-                    </form>
-                  ) : (
-                    <span className="list-item-title">
-                      {conv.pinned ? '📌 ' : ''}
-                      {conv.title}
-                    </span>
-                  )}
-                  <span className="list-item-meta conv-actions">
-                    <span>{new Date(conv.updatedAt).toLocaleDateString()}</span>
-                    <button
-                      type="button"
-                      title={conv.pinned ? 'Unpin' : 'Pin'}
-                      onClick={(e) => handlePin(conv, e)}
-                    >
-                      {conv.pinned ? 'Unpin' : 'Pin'}
-                    </button>
-                    <button
-                      type="button"
-                      title="Rename"
-                      onClick={(e) => {
-                        e.stopPropagation();
+                    key={conv._id}
+                    className={`list-item ${activeConversationId === conv._id ? 'active' : ''} ${conv.pinned ? 'pinned' : ''}`}
+                    onClick={() => {
+                      openConversation(conv._id);
+                      setSidebarOpen(false);
+                    }}
+                    onKeyDown={(e) => e.key === 'Enter' && openConversation(conv._id)}
+                    role="button"
+                    tabIndex={0}
+                  >
+                    <div className="list-item-body">
+                      {renamingId === conv._id ? (
+                        <form
+                          onSubmit={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleRename(conv._id);
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <input
+                            className="rename-input"
+                            value={renameValue}
+                            autoFocus
+                            onChange={(e) => setRenameValue(e.target.value)}
+                            onBlur={() => handleRename(conv._id)}
+                          />
+                        </form>
+                      ) : (
+                        <span className="list-item-title">
+                          {conv.pinned ? '📌 ' : ''}
+                          {conv.title}
+                        </span>
+                      )}
+                      <span className="list-item-meta">
+                        {new Date(conv.updatedAt).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <ConversationActionsMenu
+                      conversation={conv}
+                      onPin={(e) => handlePin(conv, e)}
+                      onRename={() => {
                         setRenamingId(conv._id);
                         setRenameValue(conv.title);
                       }}
-                    >
-                      Rename
-                    </button>
-                    <button type="button" title={conv.archived ? 'Unarchive' : 'Archive'} onClick={(e) => handleArchive(conv, e)}>
-                      {conv.archived ? 'Unarchive' : 'Archive'}
-                    </button>
-                    <button
-                      type="button"
-                      className="danger"
-                      title="Delete"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteConversation(conv._id);
-                      }}
-                    >
-                      Delete
-                    </button>
-                  </span>
+                      onArchive={(e) => handleArchive(conv, e)}
+                      onDelete={() => handleDeleteConversation(conv._id)}
+                    />
                   </div>
                 ))}
                 {conversationCursor && (
