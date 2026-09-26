@@ -1052,11 +1052,79 @@ button {
   gap: 0.85rem;
 }
 
+.quiz-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.quiz-toolbar-actions {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.quiz-toolbar-actions button {
+  border: 1px solid var(--border);
+  background: var(--bg-surface-solid);
+  color: var(--text-secondary);
+  border-radius: 999px;
+  padding: 0.3rem 0.7rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.quiz-toolbar-actions button:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
 .quiz-progress {
   margin: 0.2rem 0 0;
   font-size: 1.35rem;
   font-weight: 700;
   letter-spacing: -0.02em;
+}
+
+.quiz-edit-field {
+  display: grid;
+  gap: 0.3rem;
+  margin-bottom: 0.65rem;
+}
+
+.quiz-edit-field span {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.quiz-edit-field textarea,
+.quiz-edit-option input[type='text'],
+.quiz-edit-option input:not([type='radio']) {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-surface-solid);
+  color: var(--text-primary);
+  font: inherit;
+  padding: 0.45rem 0.55rem;
+}
+
+.quiz-edit-option {
+  align-items: center;
+  cursor: default;
+}
+
+.quiz-edit-option input[type='radio'] {
+  margin-top: 0.15rem;
+  flex-shrink: 0;
+}
+
+.quiz-edit-option input:not([type='radio']) {
+  flex: 1;
+  min-width: 0;
 }
 
 .quiz-card {
